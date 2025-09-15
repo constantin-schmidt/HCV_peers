@@ -21,7 +21,7 @@ nTimes = dim(mu)[3]
 for (b in 1:nIter) {
   for (i in 1:nUnits) {
     for (t in 1:nTimes) {
-      Y0_imp[b,i,t] = rnbinom( 1, mu=mu[b,i,t], size=phi[b])
+      Y0_imp[b,i,t] = rnbinom(1, mu=mu[b,i,t], size=phi[b])
     }
   }
 }
