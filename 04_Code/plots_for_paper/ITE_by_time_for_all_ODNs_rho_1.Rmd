@@ -1,0 +1,174 @@
+---
+title: "ICE across time for each ODN"
+output: html_notebook
+---
+Preliminaries
+```{r setup, include=FALSE}
+library(here)
+knitr::opts_knit$set(root.dir = here::here())
+```
+# Load data
+```{r}
+# packages
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+library(rlang)
+
+################
+##  Load data ##
+################
+
+load("./03_Data/ZZ_Temp/panel_het_blue.RData")
+load("./03_Data/ZZ_Temp/HEP_dta_short.RData")
+
+################################################################
+##  Generate a treatment effect array for full Bayesian model ##
+################################################################
+load('./03_Data/ZZ_Temp/posterior_predictions_copula_list_full_bayes.RData')
+Y_0 <- posterior_predictions_copula_list[["rho=1"]]
+
+nIter <- dim(Y_0)[1]
+nUnits <- dim(Y_0)[2]
+nTimes <- dim(Y_0)[3]
+Y_array <- array(rep(panel_list$Y, nIter), dim = c(nUnits, nTimes, nIter)) |>
+  aperm(c(3, 1, 2))
+
+treat_array_full_bayes_rho1 <- Y_array - Y_0
+
+################################################################
+##  Generate a treatment effect array for independent model ##
+################################################################
+load("./03_Data/ZZ_Temp/posterior_predictions_copula_list_outcome.RData")
+Y_0 <- posterior_predictions_copula_list[["rho=1"]]
+
+nIter <- dim(Y_0)[1]
+Y_array <- array(rep(panel_list$Y, nIter), dim = c(nUnits, nTimes, nIter)) |>
+  aperm(c(3, 1, 2))
+
+treat_array_cut_rho1 <- Y_array - Y_0
+```
+# Means and percentiles
+```{r}
+# Function to calculate the mean, 2.5% and 97.5% quantiles along the first dimension
+generate_summary_stats <- function(arr) {
+  # Mean along the first dimension (nIter)
+  mean_arr <- apply(arr, c(2, 3), mean)
+  
+  # 2.5% quantile along the first dimension (nIter)
+  q2_5_arr <- apply(arr, c(2, 3), function(x) quantile(x, 0.025))
+  
+  # 97.5% quantile along the first dimension (nIter)
+  q97_5_arr <- apply(arr, c(2, 3), function(x) quantile(x, 0.975))
+  
+  # Combine results into an array
+  result_df <- array(NA, dim = c(3, dim(arr)[2], dim(arr)[3]))
+  
+  result_df[1, , ] <- mean_arr
+  result_df[2, , ] <- q2_5_arr
+  result_df[3, , ] <- q97_5_arr
+  
+  # Return the result array
+  return(result_df)
+}
+
+# Apply the function to each array and store the results
+summary_full_bayes <- generate_summary_stats(treat_array_full_bayes_rho1)
+summary_outcome <- generate_summary_stats(treat_array_cut_rho1)
+```
+# Graphs
+```{r}
+# Get unique ODN values
+unique_ODNs <- unique(HEP.dta.short$ODN)
+
+# Get unique months from HEP.dta.short
+unique_months <- unique(HEP.dta.short$Month)
+
+# Number of labels you want on the x-axis (4 in this case)
+num_labels <- 4
+
+# Loop over all units to generate individual plots
+for (i in 1:nUnits) {
+  
+  # Extract data for the current unit
+  df_full_bayes <- data.frame(
+    Time = 1:dim(summary_full_bayes)[3],
+    Mean = summary_full_bayes[1, i, ],
+    Q2_5 = summary_full_bayes[2, i, ],
+    Q97_5 = summary_full_bayes[3, i, ],
+    Method = "Full Bayesian model"
+  )
+  
+  df_outcome <- data.frame(
+    Time = 1:dim(summary_outcome)[3],
+    Mean = summary_outcome[1, i, ],
+    Q2_5 = summary_outcome[2, i, ],
+    Q97_5 = summary_outcome[3, i, ],
+    Method = "Outcome model"
+  )
+  
+  # Combine all data into one data frame
+  df_combined <- bind_rows(df_full_bayes, df_outcome)
+  
+  # Get intervention time
+  last_zero_time <- panel_list$G[i] - 1
+  
+  # Define the range from last_zero_time to the maximum time
+  time_range <- last_zero_time:dim(summary_full_bayes)[3]
+  
+  # Select 4 evenly spaced points within this range
+  selected_indices <- seq(from = min(time_range), to = max(time_range), length.out = num_labels)
+  selected_indices <- round(selected_indices)
+  
+  # Get corresponding labels from unique_months
+  x_labels <- unique_months[selected_indices]
+  
+  # Filter df_combined to start from the intervention time
+  df_combined <- df_combined |> filter(Time >= last_zero_time)
+  
+  # Plot
+  p <- ggplot(df_combined, aes(x = Time, y = Mean, color = Method, group = Method)) +
+    geom_point(size = 2, position = position_dodge(width = 0.5)) +
+    geom_errorbar(aes(ymin = Q2_5, ymax = Q97_5), width = 0.2, position = position_dodge(width = 0.5)) +  
+    labs(
+      x = "Month",
+      y = "Number of additional DDA eligible \nHCV patients identified"
+    ) +
+    scale_x_continuous(
+      breaks = selected_indices,  
+      labels = x_labels
+    ) +
+      scale_y_continuous(
+      limits = c(-10, 30)
+    ) +
+    scale_color_manual(
+      values = c(
+        "Full Bayesian model" = "#1f78b4",
+        "Outcome model" = "#33a02c"
+      )
+    ) +
+    theme_minimal() +
+    theme(
+      plot.title = element_blank(),
+      axis.title = element_text(size = 12),
+      axis.text = element_text(size = 10),
+      legend.position = "none" 
+    ) + 
+    geom_vline(aes(xintercept = last_zero_time + 0.5, linetype = "Intervention Start"),
+               color = "red", linewidth = 0.5) +
+    scale_linetype_manual(values = "dotted", name = NULL) 
+  
+  # Print the plot
+  print(p)
+  
+  ## Save ##
+ggsave(
+  filename = paste0("./05_ResultsAndDiagnostics/results_section_graphs/ITE_by_time_for_all_ODNs_rho_1/", 
+  unique_ODNs[i], ".pdf"), 
+  plot = p, 
+  width = 4.5, 
+  height = 4, 
+  units = "in"
+)
+}
+```

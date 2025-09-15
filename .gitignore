@@ -1,0 +1,7 @@
+*.Rproj.user
+*.Rdata
+*.RData
+*.rds
+.Rproj.user
+.RDataTmp
+*_compiled.rds
