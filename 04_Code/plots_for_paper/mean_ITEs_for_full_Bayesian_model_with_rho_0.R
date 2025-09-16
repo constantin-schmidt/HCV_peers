@@ -11,6 +11,7 @@ load('./03_Data/ZZ_Temp/posterior_predictions_copula_list_full_bayes.RData')
 Y_0 <- posterior_predictions_copula_list[["rho=0"]]
 
 load('./03_Data/ZZ_Temp/panel_het_blue.RData')
+load("./03_Data/HEP_dta.RData")
 
 ############################
 ## Generate the IEE array ##
@@ -29,7 +30,7 @@ treat_array <- Y_array - Y_0
 ##  Calculate mean and quantiles  ##
 ####################################
 
-plot.dta <- HEP.dta.short
+plot.dta <- HEP.dta
 
 mean_te <- apply(treat_array, c(2, 3), function(x) mean(x)) |>
   t() |>

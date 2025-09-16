@@ -19,7 +19,7 @@ load('./03_Data/ZZ_Temp/panel_het_blue.RData')
 ###########################
 
 ## stan doesn't allow missing values so we put a numeric "placeholder" in the missings
-Y0_obs <- ifelse(panel_list$D==0,
+Y0_obs <- ifelse(panel_list$D==1,
                  99999,
                  panel_list$Y)
 
