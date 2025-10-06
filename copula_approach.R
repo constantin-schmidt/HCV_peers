@@ -16,6 +16,7 @@
 #     3.2)  Find the value in the posterior predictive of the counterfactual
 #           outcome that corresponds to this qunatile
 
+########################################
 ##  Run all scripts in correct order  ##
 ########################################
 rm(list = ls())
