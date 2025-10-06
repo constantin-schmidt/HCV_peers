@@ -15,7 +15,6 @@
 #           normal distribution conditional and find corresponding quantile.
 #     3.2)  Find the value in the posterior predictive of the counterfactual
 #           outcome that corresponds to this qunatile
-rm(list=ls())
 
 ##  Run all scripts in correct order  ##
 ########################################
