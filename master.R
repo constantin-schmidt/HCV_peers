@@ -11,7 +11,7 @@ source('./04_Code/simulate_data.R')
 ##  Prepare data  ##
 ####################
 # For rstan, the data has to be in matrix format
-source('./04_Code/analysis/pepare_data_panel.R')
+source('./04_Code/analysis/prepare_data_panel.R')
 
 ##########################
 ##  Full Bayesian model ##

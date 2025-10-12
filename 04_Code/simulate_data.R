@@ -35,7 +35,9 @@ n_odns <- length(ODN)
 
 ##  Month  ##
 Month <- format(
-  seq(as.Date("2016-06-01"), as.Date("2021-05-01"), by = "month"),
+  seq(as.Date("2016-06-01"),
+      as.Date("2021-05-01"),
+      by = "month"),
   "%Y-%m")
 
 ##  Expand  ##
@@ -75,7 +77,7 @@ HEP.dta <- HEP.dta |>
     # Accumulate from 0 at t_min automatically
     Ait = cumsum(Mit_raw),
     
-    # Enforce always-zero ODNs and cap at 3
+    # Enforce always-zero ODNs
     NumberOfPeers = if_else(ODN %in% no_peer_odns, 0L, Ait),
     
     Dit = as.integer(NumberOfPeers > 0),

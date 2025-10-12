@@ -1,7 +1,7 @@
 # Extract model parameters and posterior predictions
 ##############################################################
 
-fit_het_blue <- readRDS(file = "./03_Data/ZZ_Temp/fit_full_bayes.rds")
+fit_full_bayes <- readRDS(file = "./03_Data/ZZ_Temp/fit_full_bayes.rds")
 load('./03_Data/ZZ_Temp/panel_het_blue.RData')
 G <- panel_list$G
 

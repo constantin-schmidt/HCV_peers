@@ -1,7 +1,7 @@
 ##  Posterior predictions of the counterfactuals using a copula ##
 ##################################################################
 # Example with overdispersed count outcome Y
-# As count outcomes are discrete, any value y corresponds to a range of qunatiles
+# As count outcomes are discrete, any value y corresponds to a range of quantiles
 # of the CDF.
 # Thus, we use the following steps to implement our copula approach:
 # 1.) Set values for rho, the parameter governing the correlation between
@@ -149,7 +149,7 @@ posterior_predictions_copula_list <- list()
 # Loop over each correlation value
 for (row_idx in 1:nrow(rho_df)) {
   
-  print(paste("Generating posteriors for: rho=", rho_vector[row_idx]))
+  print(paste("Generating posteriors for rho  =", rho_vector[row_idx]))
   
   # Get the specific rho value for this iteration
   rho <- as.numeric(rho_df[row_idx, ])
